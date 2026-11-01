@@ -64,6 +64,8 @@ interface UiValue {
   setFocusDay: (day: string) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   expanded: Record<string, boolean>;
   toggleExpanded: (id: string) => void;
   toasts: { id: string; message: string }[];
@@ -144,6 +146,13 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [rangeEnd, setRangeEnd] = useState(() => isoDay(new Date()));
   const [focusDay, setFocusDay] = useState(() => isoDay(new Date()));
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsedState] = useState(
+    () => localStorage.getItem('ario.sidebar') === 'collapsed',
+  );
+  const setSidebarCollapsed = useCallback((collapsed: boolean) => {
+    setSidebarCollapsedState(collapsed);
+    localStorage.setItem('ario.sidebar', collapsed ? 'collapsed' : 'open');
+  }, []);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [toasts, setToasts] = useState<{ id: string; message: string }[]>([]);
 
@@ -203,6 +212,8 @@ export function UiProvider({ children }: { children: ReactNode }) {
     setFocusDay,
     sidebarOpen,
     setSidebarOpen,
+    sidebarCollapsed,
+    setSidebarCollapsed,
     expanded,
     toggleExpanded: (id) => setExpanded((current) => ({ ...current, [id]: current[id] === false })),
     toasts,

@@ -105,7 +105,7 @@ function TaskDrawer() {
 
 function CreateTask({ prefill }: { prefill: TaskPrefill }) {
   const { projects, profile, addTask } = useStore();
-  const { closeDrawer, openTask } = useUi();
+  const { closeDrawer, openTask, openModal } = useUi();
   const [title, setTitle] = useState(prefill.title ?? '');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState(prefill.projectId ?? projects[0]?.id ?? '');
@@ -124,7 +124,19 @@ function CreateTask({ prefill }: { prefill: TaskPrefill }) {
     return (
       <>
         <DrawerHead title="New task" onClose={closeDrawer} />
-        <p className="lede">Create a project first. Tasks always belong to one.</p>
+        <p className="lede">Tasks live inside a project. Create one, then add the work.</p>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn-dark"
+            onClick={() => {
+              closeDrawer();
+              openModal({ kind: 'project' });
+            }}
+          >
+            New project
+          </button>
+        </div>
       </>
     );
   }

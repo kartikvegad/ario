@@ -129,7 +129,11 @@ function RowMenu({ task }: { task: Task }) {
         aria-expanded={open}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          setPos({ top: rect.bottom + 6, left: Math.max(8, rect.right - 196) });
+          const menuWidth = 196;
+          const menuHeight = 176;
+          const left = Math.min(Math.max(8, rect.right - menuWidth), window.innerWidth - menuWidth - 8);
+          const top = rect.bottom + 6 + menuHeight > window.innerHeight ? Math.max(8, rect.top - menuHeight) : rect.bottom + 6;
+          setPos({ top, left });
           setOpen((value) => !value);
         }}
       >

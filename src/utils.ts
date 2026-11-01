@@ -102,7 +102,7 @@ export function statusLabel(id: TaskStatus) {
 
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
+  if (!parts.length) return '';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
@@ -268,6 +268,7 @@ export function findMentions(text: string, members: Member[]) {
   const ids: string[] = [];
   const sorted = [...members].sort((a, b) => b.name.length - a.name.length);
   for (const member of sorted) {
+    if (!member.name.trim()) continue;
     const full = new RegExp(`@${escapeReg(member.name)}\\b`, 'i');
     const first = member.name.split(' ')[0];
     const short = first ? new RegExp(`@${escapeReg(first)}\\b`, 'i') : null;

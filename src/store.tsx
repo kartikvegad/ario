@@ -183,14 +183,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             }
             return next;
           });
-          const item = patch.status
-            ? activity(`Moved “${patch.title || task.title}” to ${patch.status === 'in-progress' ? 'in progress' : patch.status}`, 'task')
-            : patch.lineup != null
-              ? activity(
-                  patch.lineup ? `Added “${task.title}” to LineUp` : `Removed “${task.title}” from LineUp`,
-                  'task',
-                )
-              : null;
+          const item =
+            patch.status && patch.status !== task.status
+              ? activity(`Moved “${patch.title || task.title}” to ${patch.status === 'in-progress' ? 'in progress' : patch.status}`, 'task')
+              : patch.lineup != null && patch.lineup !== task.lineup
+                ? activity(
+                    patch.lineup ? `Added “${task.title}” to LineUp` : `Removed “${task.title}” from LineUp`,
+                    'task',
+                  )
+                : null;
           const next = { ...current, tasks };
           return item ? pushActivity(next, item) : next;
         });

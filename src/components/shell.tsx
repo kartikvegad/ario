@@ -16,6 +16,8 @@ import {
   LayoutDashboard,
   ListChecks,
   Menu,
+  PanelLeft,
+  PanelLeftClose,
   Plus,
   Search,
   Settings,
@@ -67,8 +69,20 @@ import {
 } from './studio.tsx';
 import { TasksPage } from './tasks.tsx';
 
+function useNarrow() {
+  const query = '(max-width: 959px)';
+  const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const onChange = () => setNarrow(media.matches);
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+  return narrow;
+}
+
 export function Shell() {
-  const { view, confirm, modal, drawer, sidebarOpen, setSidebarOpen, closeConfirm, closeModal, closeDrawer, toasts } = useUi();
+  const { view, confirm, modal, drawer, sidebarOpen, sidebarCollapsed, setSidebarOpen, closeConfirm, closeModal, closeDrawer, toasts } = useUi();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -84,7 +98,7 @@ export function Shell() {
 
   return (
     <div className="stage">
-      <div className="shell">
+      <div className={cx('shell', sidebarCollapsed && 'is-collapsed')}>
         <Sidebar />
         <div className="workspace">
           <Topbar />
@@ -332,7 +346,9 @@ function SideLink({
 
 function Topbar() {
   const store = useStore();
-  const { view, setView, openModal, setSidebarOpen, setFocusDay, openTask } = useUi();
+  const { view, setView, openModal, sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed, setFocusDay, openTask } = useUi();
+  const narrow = useNarrow();
+  const menuOpen = narrow ? sidebarOpen : !sidebarCollapsed;
   const me = store.members.find((member) => member.id === store.profile.memberId);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -377,8 +393,14 @@ function Topbar() {
 
   return (
     <header className="topbar">
-      <button type="button" className="icon-btn burger" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
-        <Menu size={16} />
+      <button
+        type="button"
+        className="icon-btn burger"
+        aria-label={narrow ? (sidebarOpen ? 'Close menu' : 'Open menu') : sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+        aria-expanded={menuOpen}
+        onClick={() => (narrow ? setSidebarOpen(!sidebarOpen) : setSidebarCollapsed(!sidebarCollapsed))}
+      >
+        {narrow ? <Menu size={16} /> : menuOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
       </button>
       <div className="search-wrap" ref={searchRef}>
         <Search size={16} />
@@ -466,9 +488,14 @@ function Topbar() {
             </div>
           )}
         </div>
-        <button type="button" className="user-chip" onClick={() => openModal({ kind: 'settings' })}>
-          {me && <Avatar member={me} size={28} />}
-          <span>{store.profile.name}</span>
+        <button
+          type="button"
+          className="user-chip"
+          aria-label={store.profile.name.trim() || 'You'}
+          onClick={() => openModal({ kind: 'settings' })}
+        >
+          {me && <Avatar member={{ ...me, name: store.profile.name.trim() || 'You' }} size={28} />}
+          {store.profile.name.trim() && <span>{store.profile.name}</span>}
         </button>
         <button
           type="button"
@@ -645,7 +672,7 @@ function Rail() {
             <div key={key} className="day-col">
               {blocks.map((block) => {
                 const task = tasks.find((item) => item.id === block.entry.taskId);
-                const width = `calc((100% - 10px) / ${block.lanes} - 4px)`;
+                const width = `calc(100% / ${block.lanes} - 6px)`;
                 return (
                   <button
                     key={block.entry.id}
@@ -653,8 +680,8 @@ function Rail() {
                     className="bar"
                     style={{
                       top: `${block.top * 100}%`,
-                      height: `${block.height * 100}%`,
-                      left: `calc(6px + ${block.lane} * (100% - 10px) / ${block.lanes})`,
+                      height: `${Math.min(block.height, 1 - block.top) * 100}%`,
+                      left: `calc(${block.lane} * (100% / ${block.lanes}) + 3px)`,
                       width,
                       background: barColor(task?.projectId ?? block.entry.taskId),
                     }}
